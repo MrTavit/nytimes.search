@@ -1,4 +1,4 @@
-# NY Times Article Search
+# [NY Times Article Search](https://mrtavit.github.io/nytimes.search/)
 
 ## This app was a group project created to search the NY times articles api.
 
