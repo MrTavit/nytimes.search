@@ -8,7 +8,7 @@
     <!-- Link to Bootstrap  -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
         integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
-        <!-- Link to FontAwesome  -->
+    <!-- Link to FontAwesome  -->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css"
         integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous" />
 
@@ -16,7 +16,9 @@
 
 <body>
     <div class="jumbotron text-center">
-        <h1>NY Times Search</h1>
+        <h1>
+            <i class="far fa-newspaper"></i>
+            NY Times Search</h1>
     </div>
     <!-- <label for="movie-input">Add a Movie, Yo!</label>
     <input type="text" id="movie-input"><br> -->
@@ -32,42 +34,72 @@
             <input type="text" id='start-year'><br>
             <label for="end-year">End Year (Optional):</label><br>
             <input type="text" id='end-year'><br>
-            <input id="start-search" type="submit" value="Search">
-            <input id="clear-results" type="submit" value="Clear Results">
+            <div class="input-container">
+                <i class="fas fa-search"></i>
+                <input id="start-search" type="submit" value="Search">
+                <i class="fas fa-trash"></i>
+                <input id="clear-results" type="submit" value="Clear Results">
+            </div>
         </form>
     </div>
 
     <div class="container">
-
         <div id="results-appear-here">Search Results:</div>
     </div>
 </body>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <script>
+    $("#start-search").on("click", function () {
+        event.preventDefault()
 
-    var apikey = 'VHSuLTJoqd6IU9kvq0pkHnwAVlTYsQUR'
-    var queryURL = 'https://api.nytimes.com/svc/search/v2/articlesearch.json?q=' + 'cat' + '&api-key=' + apikey
-    // Ajax shell
-    $.ajax({
-        url: queryURL,
-        method: 'GET'
-    }).then(function (response) {
-        console.log(response.response.docs)
+            var searchQty = 10
+        var input = $('#search-input').val()
+        var beginDate = '&facet_fields=source&facet=true&begin_date=20120101'
+        var endDate = '&end_date=20121231'
+        var apikey = 'VHSuLTJoqd6IU9kvq0pkHnwAVlTYsQUR'
+        var queryURL = 'https://api.nytimes.com/svc/search/v2/articlesearch.json?q=' + input + '&api-key=' + apikey + beginDate + endDate
 
-        var result = response.response.docs
+        
 
-        for (var i = 0; i < result.length; i++) {
+        // Ajax shell
+        $.ajax({
+            url: queryURL,
+            method: 'GET'
+        }).then(function (response) {
+            console.log(response)
 
-            //     var animalDiv = $('<div>')
-            // var p = $('<p>').text('Rating: ' + results[i].rating)
-            // var animalImage = $('<img>')
-            // animalImage.attr('src', results[i].images.fixed_height.url)
-            // animalDiv.append(p)
-            // animalDiv.append(animalImage)
-            // $('#gifs-appear-here').prepend(animalDiv)
-        }
+            var result = response.response.docs
+
+            if($('#search-quantity')){
+                searchQty = $('#search-quantity').val()
+            }
+
+            for (var i = 0; i < searchQty; i++) {
+
+                var headline = result[i].headline.main
+                var author = result[i].byline.original
+                var articleWebsite = result[i].web_url
+                var articleCard = $(`<div class="card">`)
+                var webTag = $(`<a href ="${articleWebsite}">`)
+                var articleHeadline = $(`<div class= "card body">${headline}<br>${author}</div>`)
+                $(webTag).append(articleHeadline)
+                $(articleCard).append(webTag)
+                $("#results-appear-here").append(articleCard)
+
+
+
+            }
+        })
+
     })
+
+    $('#clear-results').on('click', function () {
+        event.preventDefault()
+        $('#results-appear-here').empty()
+    })
+
+
 </script>
 
 
