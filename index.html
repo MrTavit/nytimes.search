@@ -16,84 +16,125 @@
 
 <body>
     <div class="jumbotron text-center">
-        <h1>
-            <i class="far fa-newspaper"></i>
-            NY Times Search</h1>
-    </div>
-    <!-- <label for="movie-input">Add a Movie, Yo!</label>
+        <div class="jumbotron" style="background-color: #20315A ; color: white;">
+            <h1 class="text-center"><strong><i class="far fa-newspaper"></i> New York Times Search</strong></h1>
+        </div>
+        <!-- <label for="movie-input">Add a Movie, Yo!</label>
     <input type="text" id="movie-input"><br> -->
-    <div class="container">
+        <div class="container">
 
-        <div class="row">Search Parameters</div>
-        <form id='search-form'>
-            <label for="search-input">Search Term:</label><br>
-            <input type="text" id='search-input'><br>
-            <label for="search-quantity">Number of records to retrieve:</label><br>
-            <input type="text" id='search-quantity'><br>
-            <label for="start-year">Start Year (Optional):</label><br>
-            <input type="text" id='start-year'><br>
-            <label for="end-year">End Year (Optional):</label><br>
-            <input type="text" id='end-year'><br>
-            <div class="input-container">
-                <i class="fas fa-search"></i>
-                <input id="start-search" type="submit" value="Search">
-                <i class="fas fa-trash"></i>
-                <input id="clear-results" type="submit" value="Clear Results">
+            <form id='search-form'>
+                <!-- Search input field -->
+                <label for="search-input">Search Term:</label><br>
+                <input type="text" id='search-input'><br>
+
+                <!-- Options for number of articles to display, can be changed however the max the api will return is 10 -->
+                <label for="search-quantity">Number of articles to retrieve:</label><br>
+                <select name="search-quantity" id="search-quantity">
+                    <option value="10">10</option>
+                    <option value="5">5</option>
+                    <option value="2">2</option>
+                    <option value="1">1</option>
+                </select><br>
+
+                <!-- Year input fields(these are optional) -->
+                <label for="start-year">Start Year (Optional):</label><br>
+                <input type="text" id='start-year'><br>
+                <label for="end-year">End Year (Optional):</label><br>
+                <input type="text" id='end-year'><br>
+
+                <!-- Search and Clear buttons -->
+                <div class="input-container">
+                    <button id="start-search" class='btn btn-default'><i class="fas fa-search"></i> Search</button>
+
+                    <button id="clear-results" class='btn btn-default'><i class="fas fa-trash"></i> Clear
+                        Results</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="panel-heading">
+                        <h3 class="panel-title"><strong><i class="fa fa-table"></i> Top Articles</strong></h3>
+                    </div>
+                </div>
             </div>
-        </form>
-    </div>
-
-    <div class="container">
-        <div id="results-appear-here">Search Results:</div>
-    </div>
+        </div>
+        <div class="container">Search Results:
+            <div id="results-appear-here"></div>
+        </div>
 </body>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <script>
-    $("#start-search").on("click", function () {
+
+    // Run when the search form is submitted
+    $("#search-form").on("submit", function () {
         event.preventDefault()
 
-            var searchQty = 10
-        var input = $('#search-input').val()
-        var beginDate = '&facet_fields=source&facet=true&begin_date=20120101'
-        var endDate = '&end_date=20121231'
-        var apikey = 'VHSuLTJoqd6IU9kvq0pkHnwAVlTYsQUR'
-        var queryURL = 'https://api.nytimes.com/svc/search/v2/articlesearch.json?q=' + input + '&api-key=' + apikey + beginDate + endDate
+        // Object created to store the URL components
+        var queryParams = {
+            'api-key':
+                "VHSuLTJoqd6IU9kvq0pkHnwAVlTYsQUR"
+        };
 
-        
+        // Variables set to store the values within the search fields
+        queryParams.q = $('#search-input').val().trim()
+        var start = $('#start-year').val().trim()
+        console.log(start)
+        var end = $('#end-year').val().trim()
 
-        // Ajax shell
+        // If a value is entered for start or end year, the year and first/last day will be appended to the URL
+        if (start) {
+            // Jan 01 for start
+            queryParams.begin_date = start + '0101'
+        }
+        if (end) {
+            // Dec 31 for end to include that year
+            queryParams.end_date = end + '1231'
+
+        }
+        var queryURL = 'https://api.nytimes.com/svc/search/v2/articlesearch.json?&' + $.param(queryParams)
+
+
+
         $.ajax({
             url: queryURL,
             method: 'GET'
         }).then(function (response) {
             console.log(response)
 
-            var result = response.response.docs
+            var articles = response.response.docs
+            // Clear the previous results before displaying the new ones
+            $('#results-appear-here').empty()
 
-            if($('#search-quantity')){
-                searchQty = $('#search-quantity').val()
-            }
 
-            for (var i = 0; i < searchQty; i++) {
+            // Runs based on the number entered in the search quantity field
+            for (var i = 0; i < $('#search-quantity').val(); i++) {
 
-                var headline = result[i].headline.main
-                var author = result[i].byline.original
-                var articleWebsite = result[i].web_url
-                var articleCard = $(`<div class="card">`)
-                var webTag = $(`<a href ="${articleWebsite}">`)
-                var articleHeadline = $(`<div class= "card body">${headline}<br>${author}</div>`)
-                $(webTag).append(articleHeadline)
-                $(articleCard).append(webTag)
+
+                // Builds out card for each article, clicking anywhere on the card will open the original article
+                var headline = articles[i].headline.main
+                var author = articles[i].byline.original
+                var articleWebsite = articles[i].web_url
+
+                // Html for card
+                var articleCard = $(`
+                <div class="card">
+                <a href= ${articleWebsite}>
+                <h5 class='card-title'>${headline}</h5>
+                <p class='card-text'>${articles[i].abstract}<br>${author}</p>
+                </div>`)
+
                 $("#results-appear-here").append(articleCard)
-
-
-
             }
         })
 
     })
 
+    // Removes the previous results when the clear results button is clicked
     $('#clear-results').on('click', function () {
         event.preventDefault()
         $('#results-appear-here').empty()
